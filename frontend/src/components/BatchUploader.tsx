@@ -158,14 +158,24 @@ export default function BatchUploader({
     return (
         <div className="w-full max-w-2xl mx-auto mt-4">
             {/* ── Drop zone ── */}
-            <motion.div
-                whileHover={!running ? { scale: 1.01 } : {}}
-                className={`${running ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
-            >
-                {items.length > 0 && (
-                    <p className="text-[10px] text-indigo-400 mt-2 font-semibold">{items.length}/10 tracks in queue</p>
-                )}
-            </motion.div>
+            <div {...getRootProps()} className="w-full focus:outline-none">
+                <input {...getInputProps()} />
+                <motion.div
+                    whileHover={!running ? { scale: 1.01 } : {}}
+                    className={`flex flex-col items-center justify-center border-2 border-dashed rounded-3xl p-14 text-center cursor-pointer transition-colors ${isDragActive ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 hover:border-white/20 bg-white/[0.025] hover:bg-white/[0.04]'} ${running ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                >
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-white/40">
+                        <UploadCloud size={28} />
+                    </div>
+                    <h3 className="text-lg font-bold text-white/90 mb-1">{isDragActive ? 'Drop files now...' : 'Drag & drop audio files'}</h3>
+                    <p className="text-xs text-white/40 mb-4">MP3 or WAV up to 50MB (Max 10 files)</p>
+                    {items.length > 0 && (
+                        <div className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold tracking-widest uppercase">
+                            {items.length}/10 Queued
+                        </div>
+                    )}
+                </motion.div>
+            </div>
 
             {/* ── Queue list ── */}
             <AnimatePresence>
