@@ -48,7 +48,7 @@ export default function Home() {
       <FloatingBackground />
 
       {/* Global Header */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="fixed top-6 right-6 z-[100]">
         {user ? (
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1 pr-4 rounded-full backdrop-blur-md shadow-lg shadow-black/20">
             {user.photoURL ? (
