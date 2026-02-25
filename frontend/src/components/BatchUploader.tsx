@@ -3,15 +3,17 @@
 import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, Music2, CheckCircle2, XCircle, Loader2, Trash2, Download, Play, Layers } from 'lucide-react';
+import { UploadCloud, Music2, CheckCircle2, XCircle, Loader2, Trash2, Download, Play, Youtube } from 'lucide-react';
 import axios from 'axios';
 import { saveToHistory } from './HistoryPanel';
+import { useAuth } from '@/context/AuthContext';
 
 interface BatchItem {
     id: string;
     file: File;
     status: 'queued' | 'uploading' | 'processing' | 'done' | 'error';
     taskId?: string;
+    fileId?: string;
     error?: string;
     progress?: number;
 }
@@ -47,8 +49,11 @@ const STATUS_COLOR: Record<BatchItem['status'], string> = {
 export default function BatchUploader({
     preset, vocalVol, trackVol, ambientVol, reverbAmount, playbackSpeed, copyrightFree
 }: BatchUploaderProps) {
+    const { user } = useAuth();
     const [items, setItems] = useState<BatchItem[]>([]);
     const [running, setRunning] = useState(false);
+    const [ytUrl, setYtUrl] = useState('');
+    const [ytLoading, setYtLoading] = useState(false);
     const abortRef = useRef(false);
 
     const update = (id: string, patch: Partial<BatchItem>) =>
@@ -59,7 +64,7 @@ export default function BatchUploader({
         const newItems: BatchItem[] = accepted.slice(0, 10).map(f => ({
             id: `${f.name}-${Date.now()}-${Math.random()}`,
             file: f,
-            status: 'queued',
+            status: 'queued' as const,
             progress: 0,
         }));
         setItems(prev => [...prev, ...newItems].slice(0, 10));
@@ -73,19 +78,62 @@ export default function BatchUploader({
         disabled: running,
     });
 
+    /* ── YouTube Submit ── */
+    const handleYtSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!ytUrl) return;
+        setYtLoading(true);
+        try {
+            const fd = new FormData(); fd.append('url', ytUrl);
+            const res = await axios.post(`${API}/api/youtube`, fd);
+            const taskId = res.data.task_id;
+
+            const poll = setInterval(async () => {
+                try {
+                    const s = await axios.get(`${API}/api/yt-status/${taskId}`);
+                    if (s.data.status === 'done') {
+                        clearInterval(poll);
+                        setYtLoading(false);
+                        setYtUrl('');
+                        setItems(prev => [...prev, {
+                            id: `yt-${Date.now()}`,
+                            file: new File([""], s.data.filename + ".mp3", { type: "audio/mpeg" }),
+                            status: 'queued' as const,
+                            progress: 0,
+                            fileId: s.data.file_id
+                        }].slice(0, 10));
+                    } else if (s.data.status === 'failed') {
+                        clearInterval(poll);
+                        setYtLoading(false);
+                        alert("YouTube Error: " + s.data.error);
+                    }
+                } catch (err) {
+                    clearInterval(poll);
+                    setYtLoading(false);
+                    alert("Failed to reach server.");
+                }
+            }, 2000);
+        } catch (err) {
+            setYtLoading(false);
+            alert("Failed to start YouTube download.");
+        }
+    };
+
     /* ── Process one item ── */
     const processItem = async (item: BatchItem) => {
         if (abortRef.current) return;
 
         // UPLOAD
-        update(item.id, { status: 'uploading' });
-        let fileId: string;
-        try {
-            const fd = new FormData(); fd.append('file', item.file);
-            const res = await axios.post(`${API}/api/upload`, fd);
-            fileId = res.data.file_id;
-        } catch {
-            update(item.id, { status: 'error', error: 'Upload failed' }); return;
+        let fileId: string | undefined = item.fileId;
+        if (!fileId) {
+            update(item.id, { status: 'uploading' });
+            try {
+                const fd = new FormData(); fd.append('file', item.file);
+                const res = await axios.post(`${API}/api/upload`, fd);
+                fileId = res.data.file_id;
+            } catch {
+                update(item.id, { status: 'error', error: 'Upload failed' }); return;
+            }
         }
 
         // PROCESS
@@ -93,7 +141,7 @@ export default function BatchUploader({
         let taskId: string;
         try {
             const fd = new URLSearchParams();
-            fd.append('file_id', fileId); fd.append('preset', preset);
+            fd.append('file_id', fileId!); fd.append('preset', preset);
             fd.append('vocal_vol', vocalVol.toString());
             fd.append('track_vol', trackVol.toString());
             fd.append('ambient_vol', ambientVol.toString());
@@ -156,8 +204,8 @@ export default function BatchUploader({
     const done = items.filter(i => i.status === 'done').length;
 
     return (
-        <div className="w-full max-w-2xl mx-auto mt-4">
-            {/* ── Drop zone ── */}
+        <div className="w-full max-w-2xl mx-auto mt-4 space-y-4">
+            {/* ── Drop zone & YouTube ── */}
             <div {...getRootProps()} className="w-full focus:outline-none">
                 <input {...getInputProps()} />
                 <motion.div
@@ -176,6 +224,25 @@ export default function BatchUploader({
                     )}
                 </motion.div>
             </div>
+
+            <form onSubmit={handleYtSubmit} className="relative flex items-center">
+                <div className="absolute left-4 text-white/40"><Youtube size={18} /></div>
+                <input
+                    type="url"
+                    value={ytUrl}
+                    onChange={e => setYtUrl(e.target.value)}
+                    placeholder="Paste YouTube Link here..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-32 text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                    disabled={ytLoading || running}
+                />
+                <button
+                    type="submit"
+                    disabled={ytLoading || running || !ytUrl}
+                    className="absolute right-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 outline-none rounded-xl text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                    {ytLoading ? <Loader2 size={14} className="animate-spin" /> : 'Get Audio'}
+                </button>
+            </form>
 
             {/* ── Queue list ── */}
             <AnimatePresence>
@@ -228,10 +295,17 @@ export default function BatchUploader({
                             {/* Actions */}
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {item.status === 'done' && item.taskId && (
-                                    <a href={`${API}/api/download/${item.taskId}?format=mp3`} download
-                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/25 transition-all">
-                                        <Download size={10} /> MP3
-                                    </a>
+                                    user ? (
+                                        <a href={`${API}/api/download/${item.taskId}?format=mp3`} download
+                                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/25 transition-all">
+                                            <Download size={10} /> MP3
+                                        </a>
+                                    ) : (
+                                        <button onClick={() => alert("Please login to download your tracks!")}
+                                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold bg-white/5 border border-white/10 text-white/40 hover:text-white/80 transition-all">
+                                            <Download size={10} /> Login to DL
+                                        </button>
+                                    )
                                 )}
                                 {!running && (
                                     <button onClick={() => removeItem(item.id)}

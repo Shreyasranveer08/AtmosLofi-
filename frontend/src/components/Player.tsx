@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WaveSurfer from 'wavesurfer.js';
+import { useAuth } from '@/context/AuthContext';
 
 interface PlayerProps {
     audioUrl: string;
@@ -54,7 +55,7 @@ async function detectOutputMode(): Promise<OutputMode> {
 }
 
 export default function Player({ audioUrl, taskId, vibe = 'classic', onVibeChange, onRequireAuth }: PlayerProps) {
-
+    const { user } = useAuth();
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrent] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -270,8 +271,9 @@ export default function Player({ audioUrl, taskId, vibe = 'classic', onVibeChang
     };
 
     const handleDownload = (fmt: string) => {
-        if (onRequireAuth) {
-            onRequireAuth();
+        if (!user) {
+            if (onRequireAuth) onRequireAuth();
+            else alert("Please sign in to download tracks.");
             return;
         }
         const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';

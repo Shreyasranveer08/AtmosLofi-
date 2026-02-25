@@ -11,7 +11,7 @@ import Player from '@/components/Player';
 import VHSOverlay from '@/components/VHSOverlay';
 import FloatingBackground from '@/components/FloatingBackground';
 import HistoryPanel from '@/components/HistoryPanel';
-import { Music2, Sparkles, Sliders, History } from 'lucide-react';
+import { Music2, Sparkles, Sliders, History, User } from 'lucide-react';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -46,6 +46,26 @@ export default function Home() {
     <main className="min-h-screen bg-[#0A0A0B] text-white selection:bg-indigo-500/30">
       <VHSOverlay intensity={vibe === 'late-night' ? 0.15 : 0.05} />
       <FloatingBackground />
+
+      {/* Global Header */}
+      <div className="absolute top-6 right-6 z-50">
+        {user ? (
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1 pr-4 rounded-full backdrop-blur-md shadow-lg shadow-black/20">
+            {user.photoURL ? (
+              <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-white/10" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                <User size={14} />
+              </div>
+            )}
+            <span className="text-xs font-bold text-white/80">{user.displayName || user.email?.split('@')[0]}</span>
+          </div>
+        ) : (
+          <button onClick={() => setShowAuth(true)} className="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all backdrop-blur-md shadow-lg shadow-black/20 border border-white/10">
+            Sign In
+          </button>
+        )}
+      </div>
 
       <AnimatePresence mode="wait">
         {view === 'landing' ? (
