@@ -1,0 +1,10 @@
+[build]
+  publish = "out"
+  command = "npm run build"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    # We disable the plugin if it keeps failing on post-build
+    # or just try to deploy without it by not including it in some cases.
+    # Actually, for static export, we don't need this plugin.

@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+librosa
+soundfile
+ffmpeg-python
+requests
+openai
+yt-dlp
+python-dotenv
+razorpay

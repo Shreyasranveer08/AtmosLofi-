@@ -1,0 +1,54 @@
+# Node
+node_modules/
+**/node_modules/
+.next/
+**/ .next/
+out/
+build/
+dist/
+
+# Env secrets
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Virtual Environments
+venv/
+**/venv/
+env/
+**/env/
+bin/
+**/bin/
+Include/
+**/Include/
+Lib/
+**/Lib/
+Scripts/
+**/Scripts/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+
+# Project Specific
+temp/
+**/temp/
+assets/
+**/assets/
+*.log
+ffmpeg_err_debug.txt
+ffmpeg_out.txt
+lint_results.txt
+build_error.txt
+ts_errors*.txt
+personal-web-temp/
