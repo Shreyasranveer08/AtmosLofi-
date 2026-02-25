@@ -2,6 +2,8 @@
 
 AtmosLofi is a full-stack web application that transforms any song into a cozy, atmospheric lofi masterpiece using AI-driven mood detection, stem separation, and real-time audio processing.
 
+![AtmosLofi Preview](screenshots/preview.png)
+
 ## 🚀 Live Demo
 - **Studio:** [https://atmos-lofi-studio.netlify.app/](https://atmos-lofi-studio.netlify.app/)
 - **Developer Portfolio:** [https://shreyasranveer.netlify.app/](https://shreyasranveer.netlify.app/)
@@ -23,8 +25,8 @@ AtmosLofi is a full-stack web application that transforms any song into a cozy, 
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/Shreyasranveer08/atmoslofi.git
-cd atmoslofi
+git clone https://github.com/Shreyasranveer08/AtmosLofi-.git
+cd AtmosLofi-
 ```
 
 ### 2. Frontend Setup
