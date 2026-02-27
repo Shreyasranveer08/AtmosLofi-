@@ -36,6 +36,22 @@ from api.payments import router as payments_router
 app.include_router(api_router, prefix="/api")
 app.include_router(payments_router, prefix="/api/payments")
 
+@app.get("/api/debug-logs")
+async def get_debug_logs():
+    res = {}
+    import os
+    for file in ["temp/process_error.txt", "temp/process_audio_tb.txt", "temp/yt_error.txt"]:
+        if os.path.exists(file):
+            try:
+                with open(file, "r") as f:
+                    res[file] = f.read()
+            except Exception as e:
+                res[file] = f"Could not read: {e}"
+    
+    if not res:
+        return {"message": "No error log files found on the server."}
+    return res
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to AtmosLofi API"}
