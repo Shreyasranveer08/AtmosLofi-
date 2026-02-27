@@ -5,7 +5,7 @@ AtmosLofi is a full-stack web application that transforms any song into a cozy, 
 ![AtmosLofi Preview](screenshots/preview.png)
 
 ## 🚀 Live Demo
-- **Studio:** [https://atmos-lofi-studio.netlify.app/](https://atmos-lofi-studio.netlify.app/)
+- **Studio:** [https://atmoslofi-af7a4.web.app/](https://atmoslofi-af7a4.web.app/)
 - **Developer Portfolio:** [https://shreyasranveer.netlify.app/](https://shreyasranveer.netlify.app/)
 
 ## ✨ Features
