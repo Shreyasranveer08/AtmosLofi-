@@ -43,8 +43,8 @@ __pycache__/
 # Project Specific
 temp/
 **/temp/
-assets/
-**/assets/
+!backend/assets/
+!backend/temp/assets/
 *.log
 ffmpeg_err_debug.txt
 ffmpeg_out.txt
